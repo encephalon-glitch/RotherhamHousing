@@ -138,7 +138,7 @@ EXEC dbo.GetContractorPerformance
 | GetContractorPerformance v1.4 | In development |
 | GetRepairsByCategory procedure | Planned |
 | Plotly visualisation layer | Planned |
-| GitHub publication | Planned |
+| GitHub publication | Complete |
 
 ---
 

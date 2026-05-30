@@ -21,19 +21,11 @@ BEGIN
 
     BEGIN TRY
 
-        IF @DateFrom IS NULL
-            SET @DateFrom = DATEFROMPARTS(
-                                CASE WHEN MONTH(GETDATE()) >= 4
-                                     THEN YEAR(GETDATE())
-                                     ELSE YEAR(GETDATE()) - 1 END,
-                                4, 1);
+	IF @DateFrom IS NULL
+		SET @DateFrom = DATEFROMPARTS(YEAR(GETDATE()) - 1, 4, 1);
 
-        IF @DateTo IS NULL
-			SET @DateTo = DATEFROMPARTS(
-							  CASE WHEN MONTH(GETDATE()) >= 4
-								   THEN YEAR(GETDATE())
-								   ELSE YEAR(GETDATE()) - 1 END,
-							  3, 31);
+	IF @DateTo IS NULL
+		SET @DateTo = DATEFROMPARTS(YEAR(GETDATE()), 3, 31);
 
         IF @DateFrom > @DateTo
             THROW 50001, 'DateFrom cannot be later than DateTo.', 1;
