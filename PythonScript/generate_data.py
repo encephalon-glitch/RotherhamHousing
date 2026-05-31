@@ -4,6 +4,23 @@ from faker import Faker
 import random
 from datetime import date, timedelta
 
+# ============================================================
+# generate_data_v1.1
+#
+# Changes from v1.0:
+#   - Added 'Urgent' priority band (15% overall, weighted
+#     higher for Damp/Mould jobs) to support three-tier
+#     Awaab's Law RAG in GetRepairsByCategory procedure
+#   - Added 'No Access' status (~5% overall, ~10% for
+#     Damp/Mould jobs) to surface compliance exposure in
+#     Awaab's Law reporting
+#   - days_to_complete updated to handle Urgent band:
+#     14-day target, ~96% compliance rate
+#   - Staging load filter updated to include new values
+#   - Contractor assignment unchanged -- already correctly
+#     respects ContractType (Emergency/Planned/Both)
+# ============================================================
+
 fake = Faker('en_GB')
 random.seed(42)
 
@@ -94,37 +111,64 @@ print("Generating Repair Jobs...")
 
 categories = list(range(1, 13))
 contractors = [1, 2, 3]
-priorities = ['Emergency', 'Non-Emergency']
-priority_weights = [15, 85]
-statuses = ['Completed', 'In Progress', 'Cancelled']
-status_weights = [88, 8, 4]
 
-# Awaabs Law: damp/mould jobs weighted to winter months
+# Three priority bands -- Urgent added to support Awaab's Law
+# three-tier compliance RAG in GetRepairsByCategory
+priorities = ['Emergency', 'Urgent', 'Non-Emergency']
+priority_weights_standard = [15, 10, 75]   # Non-damp jobs
+priority_weights_damp     = [15, 30, 55]   # Damp/Mould jobs weighted toward Urgent
+                                            # -- reflects Awaab's Law reporting reality
+
+# No Access added to surface compliance exposure
+# Weighted higher for Damp/Mould -- failed access on a damp
+# job keeps the legal clock running under Awaab's Law
+statuses_standard = ['Completed', 'In Progress', 'Cancelled', 'No Access']
+weights_standard  = [85, 8, 4, 3]
+
+statuses_damp     = ['Completed', 'In Progress', 'Cancelled', 'No Access']
+weights_damp      = [78, 8, 4, 10]   # ~10% No Access for damp jobs vs ~3% elsewhere
+
+# Awaab's Law: damp/mould jobs weighted to winter months
+# Categories 1 (Damp and Mould) and 2 (Condensation) = Damp/Mould group
 def pick_category(raised_date):
     if raised_date.month in [11, 12, 1, 2, 3]:
         return random.choices(categories, weights=[20, 10, 15, 10, 8, 5, 8, 8, 6, 4, 4, 2])[0]
     else:
         return random.choices(categories, weights=[8, 5, 10, 8, 10, 8, 12, 12, 10, 8, 6, 3])[0]
 
+# Contractor assignment respects ContractType from reference data:
+#   Mears (1)        = Both      -- Emergency and Planned
+#   Equans (2)       = Planned   -- Non-Emergency only
+#   Direct Works (3) = Emergency -- Emergency only
 def pick_contractor(priority):
     if priority == 'Emergency':
         return random.choices([1, 3], weights=[60, 40])[0]
     else:
+        # Urgent and Non-Emergency both treated as Planned work
         return random.choices([1, 2], weights=[50, 50])[0]
 
+# Three-band completion targets aligned to Awaab's Law thresholds:
+#   Emergency:     1 day
+#   Urgent:        14 days
+#   Non-Emergency: 20 days
 def days_to_complete(priority, status):
     if status != 'Completed':
+        # No Access, Cancelled, In Progress -- no completion date
         return None
     if priority == 'Emergency':
-        # Target: complete within 1 working day
-        # ~99% on target, small number breach
+        # ~99% within 1 day -- small breach tail for realism
         return random.choices(
             [random.randint(1, 1), random.randint(2, 5)],
             weights=[99, 1]
         )[0]
+    elif priority == 'Urgent':
+        # ~96% within 14 days -- Awaab's Law urgent threshold
+        return random.choices(
+            [random.randint(1, 14), random.randint(15, 30)],
+            weights=[96, 4]
+        )[0]
     else:
-        # Target: complete within 20 working days
-        # ~98% on target
+        # Non-Emergency: ~98% within 20 days
         return random.choices(
             [random.randint(1, 20), random.randint(21, 40)],
             weights=[98, 2]
@@ -134,14 +178,27 @@ staging_rows = []
 for i in range(1000):
     prop = random.choice(properties)[0]
     raised = start_date + timedelta(days=random.randint(0, delta.days))
-    priority = random.choices(priorities, weights=priority_weights)[0]
     category = pick_category(raised)
+
+    # Apply damp-weighted priority and status distributions
+    # where category is Damp and Mould (1) or Condensation (2)
+    is_damp = category in [1, 2]
+
+    priority = random.choices(
+        priorities,
+        weights=priority_weights_damp if is_damp else priority_weights_standard
+    )[0]
+
+    status = random.choices(
+        statuses_damp if is_damp else statuses_standard,
+        weights=weights_damp if is_damp else weights_standard
+    )[0]
+
     contractor = pick_contractor(priority)
-    status = random.choices(statuses, weights=status_weights)[0]
     days = days_to_complete(priority, status)
     completed = raised + timedelta(days=days) if days else None
 
-    # Right first time: 95.7% per their published figure
+    # Right first time: 95.7% per Rotherham published figure
     rft = None
     if status == 'Completed':
         rft = 1 if random.random() < 0.957 else 0
@@ -170,6 +227,7 @@ print(f"  {len(staging_rows)} staging rows inserted.")
 # ============================================================
 print("Loading RepairJobs from staging...")
 
+# Filter updated to include Urgent priority and No Access status
 cursor.execute("""
     INSERT INTO RepairJobs
     (JobID, PropertyRef, CategoryID, Priority, DateRaised, DateCompleted,
@@ -180,8 +238,8 @@ cursor.execute("""
     FROM RepairJobs_Staging
     WHERE PropertyRef IS NOT NULL
       AND CategoryID IS NOT NULL
-      AND Priority IN ('Emergency', 'Non-Emergency')
-      AND Status IN ('Completed', 'In Progress', 'Cancelled')
+      AND Priority IN ('Emergency', 'Urgent', 'Non-Emergency')
+      AND Status IN ('Completed', 'In Progress', 'Cancelled', 'No Access')
 """)
 conn.commit()
 
