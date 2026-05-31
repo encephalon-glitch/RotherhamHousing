@@ -31,6 +31,11 @@ Law compliance monitoring.
 
 ## Reporting Modes
 
+> Reporting modes were evaluated and descoped in v1.4. The existing 
+> `@DateFrom` and `@DateTo` parameters provide equivalent flexibility 
+> without additional complexity. May be revisited in future iterations 
+> if a BI tool integration requires named mode parameters.
+
 | Mode | Parameter Value | Date Range | Primary Use |
 |---|---|---|---|
 | Last Fiscal Year | `LAST_FISCAL_YEAR` | 1 Apr (n-1) to 31 Mar (n) | Annual review, budget projections |
@@ -47,7 +52,7 @@ Law compliance monitoring.
 | Parameter | Type | Default | Notes |
 |---|---|---|---|
 | `@ContractorName` | VARCHAR(100) | NULL | NULL returns all contractors |
-| `@ReportingMode` | VARCHAR(20) | `LAST_FISCAL_YEAR` | Drives date window logic |
+| `@ReportingMode` | VARCHAR(20) | `LAST_FISCAL_YEAR` | DESCOPED |
 | `@DateFrom` | DATE | NULL | Manual override -- bypasses mode logic |
 | `@DateTo` | DATE | NULL | Manual override -- bypasses mode logic |
 | `@TargetEmergencyGreen` | DECIMAL(5,1) | 98.0 | Parameterised for policy changes |
@@ -84,7 +89,7 @@ Law compliance monitoring.
 
 ## Design Principles
 
-- `@ReportingMode` drives date logic -- no hardcoded dates in production
+- DESCOPED: `@ReportingMode` drives date logic -- no hardcoded dates in production
 - Manual `@DateFrom` and `@DateTo` overrides bypass mode logic entirely
   for ad-hoc analysis
 - KPI targets are parameterised -- policy changes require no code changes
@@ -110,10 +115,6 @@ EXEC dbo.GetContractorPerformance;
 EXEC dbo.GetContractorPerformance
     @ContractorName = 'Mears';
 
--- All contractors, last quarter
-EXEC dbo.GetContractorPerformance
-    @ReportingMode = 'LAST_QUARTER';
-
 -- Custom date range override
 EXEC dbo.GetContractorPerformance
     @DateFrom = '2025-10-01',
@@ -121,7 +122,6 @@ EXEC dbo.GetContractorPerformance
 
 -- Tightened KPI targets
 EXEC dbo.GetContractorPerformance
-      @ReportingMode           = 'LAST_FISCAL_YEAR'
     , @TargetEmergencyGreen    = 99.0
     , @TargetNonEmergencyGreen = 96.0
     , @TargetRFTGreen          = 95.0;
@@ -137,4 +137,4 @@ EXEC dbo.GetContractorPerformance
 | v1.1 | Complete | Temp table staging, parameterised targets |
 | v1.2 | Complete | CREATE OR ALTER, input validation, error handling |
 | v1.3 | Complete | IIF consolidation, dynamic dates, timestamp |
-| v1.4 | In development | ReportingMode parameter, quarter logic |
+| v1.4 | Complete | Reporting period updated, descoped reporting modes, inline comments addedc |

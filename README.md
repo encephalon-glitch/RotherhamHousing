@@ -79,6 +79,15 @@ Full schema reference in `Docs/schema.md`
 
 ### Reporting Modes
 
+> Reporting modes were evaluated and descoped in v1.4. The existing 
+> `@DateFrom` and `@DateTo` parameters provide equivalent flexibility 
+> without additional complexity. May be revisited in future iterations 
+> if a BI tool integration requires named mode parameters.
+
+Defaults to last complete fiscal year to align with the synthetic dataset.
+In production against a live dataset, the intended default is last complete
+calendar month.
+
 | Mode | Parameter Value | Date Range | Primary Use |
 |---|---|---|---|
 | Last Fiscal Year | `LAST_FISCAL_YEAR` | 1 Apr (n-1) to 31 Mar (n) | Annual review, budget projections |
@@ -96,10 +105,6 @@ EXEC dbo.GetContractorPerformance;
 EXEC dbo.GetContractorPerformance
     @ContractorName = 'Mears';
 
--- All contractors, last quarter
-EXEC dbo.GetContractorPerformance
-    @ReportingMode = 'LAST_QUARTER';
-
 -- Custom date range override
 EXEC dbo.GetContractorPerformance
     @DateFrom = '2025-10-01',
@@ -107,7 +112,6 @@ EXEC dbo.GetContractorPerformance
 
 -- Tightened KPI targets
 EXEC dbo.GetContractorPerformance
-      @ReportingMode         = 'LAST_FISCAL_YEAR'
     , @TargetEmergencyGreen    = 99.0
     , @TargetNonEmergencyGreen = 96.0
     , @TargetRFTGreen          = 95.0;
@@ -123,7 +127,7 @@ EXEC dbo.GetContractorPerformance
 | v1.1 | Complete | Temp table staging, parameterised targets |
 | v1.2 | Complete | CREATE OR ALTER, input validation, error handling |
 | v1.3 | Complete | IIF consolidation, dynamic dates, timestamp |
-| v1.4 | In development | ReportingMode parameter, quarter logic |
+| v1.4 | Complete | Reporting period updated, descoped reporting modes, inline comments added |
 
 ---
 
@@ -135,8 +139,8 @@ EXEC dbo.GetContractorPerformance
 | Synthetic data generation | Complete |
 | Views | Complete |
 | GetContractorPerformance v1.3 | Complete |
-| GetContractorPerformance v1.4 | In development |
-| GetRepairsByCategory procedure | Planned |
+| GetContractorPerformance v1.4 | Complete |
+| GetRepairsByCategory procedure | in development |
 | Plotly visualisation layer | Planned |
 | GitHub publication | Complete |
 
@@ -148,4 +152,5 @@ Martin Sefelin
 [LinkedIn](http://www.linkedin.com/in/martinsefelin) |
 [GitHub](https://github.com/)
 
-*Built as part of an active public sector BI portfolio -- May 2026*
+*Developed with AI assistance (Claude, Anthropic) as part of an active 
+public sector BI portfolio -- May 2026*
