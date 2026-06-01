@@ -31,7 +31,7 @@ Law compliance monitoring.
 
 ## Reporting Modes
 
-> Reporting modes were evaluated and descoped in v1.4. The existing 
+> Reporting modes were evaluated and DESCOPED in v1.4. The existing 
 > `@DateFrom` and `@DateTo` parameters provide equivalent flexibility 
 > without additional complexity. May be revisited in future iterations 
 > if a BI tool integration requires named mode parameters.
@@ -137,4 +137,4 @@ EXEC dbo.GetContractorPerformance
 | v1.1 | Complete | Temp table staging, parameterised targets |
 | v1.2 | Complete | CREATE OR ALTER, input validation, error handling |
 | v1.3 | Complete | IIF consolidation, dynamic dates, timestamp |
-| v1.4 | Complete | Reporting period updated, descoped reporting modes, inline comments addedc |
+| v1.4 | Complete | Reporting period updated, descoped reporting modes, in-line comments added |

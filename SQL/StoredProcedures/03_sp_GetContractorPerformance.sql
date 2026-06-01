@@ -41,10 +41,10 @@ BEGIN
         -- Production default: last complete calendar month.
         -- Last fiscal year used here to align with the synthetic dataset.
         IF @DateFrom IS NULL
-            SET @DateFrom = DATEFROMPARTS(YEAR(GETDATE()) - 1, 4, 1);
+            SET @DateFrom =	'2025-04-01'	--DATEFROMPARTS(YEAR(GETDATE()) - 1, 4, 1);
 
         IF @DateTo IS NULL
-            SET @DateTo = DATEFROMPARTS(YEAR(GETDATE()), 3, 31);
+            SET @DateTo =	'2026-03-31'	--DATEFROMPARTS(YEAR(GETDATE()), 3, 31);
 
         -- Catch accidental parameter inversion before hitting the data
         IF @DateFrom > @DateTo
