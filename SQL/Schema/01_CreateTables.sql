@@ -1,6 +1,15 @@
 USE RotherhamHousingRepairs;
 GO
 
+-- Ward_Geometry dimension
+CREATE TABLE WardGeometry (
+    WardID INT IDENTITY(1,1) PRIMARY KEY,
+    WD24CD VARCHAR(20) NOT NULL UNIQUE,
+    WD24NM VARCHAR(100) NOT NULL,
+    WDLat DECIMAL(9,6) NULL,
+    WDLon DECIMAL(9,6) NULL
+);
+GO
 -- Contractors dimension
 CREATE TABLE Contractors (
     ContractorID    INT IDENTITY(1,1) PRIMARY KEY,
@@ -20,7 +29,7 @@ GO
 -- Properties dimension
 CREATE TABLE Properties (
     PropertyRef     VARCHAR(10) PRIMARY KEY,
-    Ward            VARCHAR(50) NOT NULL,
+    WardID          INT NOT NULL REFERENCES WardGeometry(WardID),
     PropertyType    VARCHAR(20) NOT NULL,
     BedroomCount    INT NOT NULL,
     EPC_Rating      CHAR(1) NOT NULL,

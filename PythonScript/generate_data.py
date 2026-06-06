@@ -5,9 +5,20 @@ import random
 from datetime import date, timedelta
 
 # ============================================================
-# generate_data_v1.1
+# generate_data_v1.3
+# Changes from v1.2:
+#   - Ward list ditched for simple [1..25] in properties tbl
+#     WD24CD ONS wards added as a geometry dimension tbl to DB
+#     
+# Changes from v1.1:
+#   - Ward list replaced with real Rotherham MBC ward names.
+#     Previous list contained non-existent wards.
+#     Power BI map visuals require real place names to geocode.
+#   - Connection string SERVER replaced with placeholder
+#     for portability. Replace <YourServerName> before running.
+#     Run: sqllocaldb info to list available instances.
 #
-# Changes from v1.0:
+# Changes from v1.0 (v1.1):
 #   - Added 'Urgent' priority band (15% overall, weighted
 #     higher for Damp/Mould jobs) to support three-tier
 #     Awaab's Law RAG in GetRepairsByCategory procedure
@@ -76,26 +87,41 @@ print(f"  {len(calendar_rows)} calendar rows inserted.")
 # ============================================================
 print("Generating Properties...")
 
+'''
+# WD24CD ONS Rot'ham codes /safer option/
+ONSWardStart = 5012993
+ONSWardEnd = 5013017
+wards = [f"E{i:08d}" for i in range(ONSWardStart, ONSWardEnd + 1)]
+#_____________________________________________________________
+
+# explicit ward names (tricky to "join on" strings/ not advisable)
 wards = [
-    'Rotherham Town Centre', 'Maltby', 'Rawmarsh East', 'Rawmarsh West',
-    'Wath', 'Dinnington', 'Kiveton Park', 'Thurcroft', 'Wingfield',
-    'Boston Castle', 'Hellaby', 'Sitwell', 'Hoober', 'Wickersley',
-    'Anston and Woodsetts', 'Bramley and Ravenfield'
-]
+    'Anston and Woodsetts', 'Aston and Todwick', 'Aughton and Swallownest',
+    'Boston Castle', 'Bramley and Ravenfield', 'Brinsworth',
+    'Dalton and Thrybergh', 'Dinnington', 'Greasbrough',
+    'Hellaby and Maltby West', 'Hoober', 'Keppel',
+    'Kilnhurst and Swinton East', 'Maltby East', 'Rawmarsh East',
+    'Rawmarsh West', 'Rother Vale', 'Rotherham East',
+    'Rotherham West', 'Sitwell', 'Swinton Rockingham',
+    'Thurcroft and Wickersley South', 'Wales', 'Wath',
+    'Wickersley North'
+]'''
 property_types = ['House', 'Flat', 'Bungalow']
 epc_ratings = ['A', 'B', 'C', 'D', 'E']
 epc_weights = [2, 8, 50, 30, 10]
 
 properties = []
 for i in range(1, 501):
-    ref = f"PROP{str(i).zfill(4)}"
-    ward = random.choice(wards)
+    ref = f"PROP{i:04d}"
+#    ref = f"PROP{str(i).zfill(4)}"
+    wardID = random.randint(1, 25)
+#    ward = random.choice(wards)
     ptype = random.choices(property_types, weights=[60, 25, 15])[0]
     bedrooms = random.choices([1, 2, 3, 4], weights=[10, 25, 50, 15])[0]
     epc = random.choices(epc_ratings, weights=epc_weights)[0]
     build_year = random.randint(1920, 2020)
     is_decent = 0 if epc in ['D', 'E'] and random.random() < 0.3 else 1
-    properties.append((ref, ward, ptype, bedrooms, epc, build_year, is_decent))
+    properties.append((ref, wardID, ptype, bedrooms, epc, build_year, is_decent))
 
 cursor.executemany(
     "INSERT INTO Properties VALUES (?,?,?,?,?,?,?)",

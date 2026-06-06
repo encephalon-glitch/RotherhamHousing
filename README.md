@@ -1,4 +1,4 @@
-# Rotherham Housing Repairs — BI Portfolio Project
+# Rotherham Housing Repairs | BI Portfolio Project
 
 ## Important Disclaimer
 
