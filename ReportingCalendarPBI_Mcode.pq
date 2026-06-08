@@ -1,7 +1,7 @@
 let
 
 // ============================================================
-// Reporting Calendar -- v2.1
+// Reporting Calendar | v2.1
 // Author:   Martin Sefelin
 // Purpose:  Dynamic date dimension for Power BI.
 //           Config.: SeedDate, YearsBack, YearsForward, GovUK
@@ -23,7 +23,7 @@ let
     SeedDate     	= Date.From(DateTime.LocalNow()),
     YearsBack    	= 2,
     YearsForward 	= 1,
-	GovUK 			= "https://www.gov.uk/bank-holidays.json"
+	GovUK 			= "https://www.gov.uk/bank-holidays.json",
 
     StartDate = Date.StartOfYear(Date.AddYears(SeedDate, -YearsBack)),
     EndDate   = Date.EndOfYear(Date.AddYears(SeedDate, YearsForward)),
@@ -35,7 +35,7 @@ let
     ),
 
 // ============================================================
-// 2. BANK HOLIDAYS -- three-stage defensive fetch
+// 2. BANK HOLIDAYS | three-stage defensive fetch
 // ============================================================
 //    Stage 1: network/HTTP failure
 //      GOV.UK unreachable, timeout, or gateway/privacy issue.
@@ -57,7 +57,7 @@ let
 //    so the row function is identical regardless of outcome.
 // ============================================================
 
-    // Stage 1 -- attempt the HTTP fetch
+    // Stage 1. Attempt the HTTP fetch
     RawFetch = try Web.Contents(GovUK),
 
     BankHolidayResult =
@@ -70,7 +70,7 @@ let
             ]
         else
 
-            // Stage 2 -- attempt JSON navigation to england-and-wales events
+            // Stage 2. Attempt JSON navigation to england-and-wales events
             let
                 ParseAttempt = try
                     Json.Document(RawFetch[Value])[#"england-and-wales"][events]
@@ -85,7 +85,7 @@ let
                     ]
                 else
 
-                    // Stage 3 -- validate the events list has usable date fields
+                    // Stage 3. Validate the events list has usable date fields
                     let
                         Events     = ParseAttempt[Value],
                         FirstEvent = try Events{0}[date]
@@ -107,7 +107,7 @@ let
                                 Status = "OK"
                             ],
 
-    // Unpack result -- used by row function
+    // Unpack result | used by row function
     BankHolidaySet    = BankHolidayResult[BHSet],
     BankHolidayStatus = BankHolidayResult[Status],
 
