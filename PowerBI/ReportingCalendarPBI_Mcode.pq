@@ -1,5 +1,4 @@
 let
-
 // ============================================================
 // Reporting Calendar | v2.6
 // Author:   Martin Sefelin
@@ -9,13 +8,13 @@ let
 //           to weekday-only working day calculation on any
 //           failure. Table always renders. BankHolidayStatus
 //           on every row explains current state.
-//           Fully portable -- adapts to any geography via
+//           Fully portable | adapts to any geography via
 //           config block alone. Zero magic values in logic.
 // Changes:  v2.1____Three-stage error handling. Calendar
 //                    always loads.
 //           v2.2____Stages 2-3 collapsed. Record.FieldValues
 //                    replaces hardcoded division key.
-//                    Config block introduced.
+//                    Config block updated.
 //           v2.3____ParsedJSON assigned once. BHDivisionNames
 //                    as two-column transparency table.
 //           v2.4____Single HasError check. BHDivisionNames
@@ -25,9 +24,10 @@ let
 //                    distinct failure modes.
 //           v2.6____FiscalYearStartMonth in config. All fiscal
 //                    derivations parameterised. FiscalYearStartMonth
-//                    passed explicitly into fnDate -- no closures
+//                    passed explicitly into fnDate | no closures
 //                    anywhere. Stub variables documented for
 //                    bank holiday removal. Fully international.
+//           v2.7____Added explicit datatype assignment
 // ============================================================
 // 1. CONFIGURATION
 // ============================================================
@@ -94,7 +94,7 @@ let
             ]
         else
             let
-                // FieldNames called once -- used by discovery,
+                // FieldNames called once | used by discovery,
                 // ambiguity guard, and BHDivisionNames.
                 FieldNames = Record.FieldNames(ParsedJSON),
 
@@ -122,7 +122,7 @@ let
                 // Resolved only when exactly one match found.
                 EnglandKey = List.First(EnglandMatches),
 
-                // Navigate by discovered key name -- no positional index.
+                // Navigate by discovered key name | no positional index.
                 // Single try | full chain works or it does not.
                 EventsAndDates = try List.Transform(
                     Record.Field(ParsedJSON, EnglandKey)[events],
@@ -146,7 +146,7 @@ let
                         BHSet  = {},
                         Status = "Bank holiday data unavailable: '"
                                  & BHSearchTerm
-                                 & "' matched multiple divisions -- "
+                                 & "' matched multiple divisions | "
                                  & Text.Combine(EnglandMatches, ", ")
                                  & ". Working day calculations use weekdays only. "
                                  & "Tighten BHSearchTerm in the config block "
@@ -275,12 +275,40 @@ let
 // 5. MATERIALISE
 // ============================================================
 
-    TableOut = Table.FromRecords(
-        List.Transform(
-            DateList,
-            each fnDate(_, SeedDate, BankHolidaySet, BankHolidayStatus, FiscalYearStartMonth)
-        )
-    )
-
+	TableOut = Table.TransformColumnTypes(
+		// generate table
+        Table.FromRecords(
+			List.Transform(
+				DateList,
+				each fnDate(_, SeedDate, BankHolidaySet, BankHolidayStatus, FiscalYearStartMonth)
+			)
+		),
+        // output schema | prevents silent inference at refresh
+		{
+			{"Date",                type date},
+			{"CalendarYear",        Int64.Type},
+			{"MonthNumber",         Int64.Type},
+			{"MonthName",           type text},
+			{"MonthShort",          type text},
+			{"YearMonth",           type text},
+			{"CalendarQuarter",     type text},
+			{"DayOfWeek",           Int64.Type},
+			{"DayName",             type text},
+			{"FiscalYear",          Int64.Type},
+			{"FiscalYearLabel",     type text},
+			{"FiscalMonth",         Int64.Type},
+			{"FiscalQuarter",       type text},
+			{"RelativeDay",         Int64.Type},
+			{"RelativeMonth",       Int64.Type},
+			{"RelativeQuarter",     Int64.Type},
+			{"RelativeYear",        Int64.Type},
+			{"IsCurrentMonth",      type logical},
+			{"IsCurrentFiscalYear", type logical},
+			{"IsLast12Months",      type logical},
+			{"IsBankHoliday",       type logical},
+			{"IsWorkingDay",        type logical},
+			{"BankHolidayStatus",   type text}
+		}
+	)
 in
     TableOut
