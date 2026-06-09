@@ -1,6 +1,6 @@
 let
 // ============================================================
-// Reporting Calendar | v2.6
+// Reporting Calendar | v2.7
 // Author:   Martin Sefelin
 // Purpose:  Dynamic date dimension for Power BI.
 //           Seeds from today, spans YearsBack/YearsForward.
@@ -10,24 +10,25 @@ let
 //           on every row explains current state.
 //           Fully portable | adapts to any geography via
 //           config block alone. Zero magic values in logic.
-// Changes:  v2.1____Three-stage error handling. Calendar
-//                    always loads.
-//           v2.2____Stages 2-3 collapsed. Record.FieldValues
-//                    replaces hardcoded division key.
-//                    Config block updated.
-//           v2.3____ParsedJSON assigned once. BHDivisionNames
-//                    as two-column transparency table.
-//           v2.4____Single HasError check. BHDivisionNames
-//                    and EventsAndDates inside success branch.
-//           v2.5____Fully adaptive division discovery via
-//                    BHSearchTerm. Ambiguity guard. Four
-//                    distinct failure modes.
+// ============================================================
+// Changes:  v2.7____Added explicit datatype assignment.
 //           v2.6____FiscalYearStartMonth in config. All fiscal
 //                    derivations parameterised. FiscalYearStartMonth
 //                    passed explicitly into fnDate | no closures
 //                    anywhere. Stub variables documented for
 //                    bank holiday removal. Fully international.
-//           v2.7____Added explicit datatype assignment
+//           v2.5____Fully adaptive division discovery via
+//                    BHSearchTerm. Ambiguity guard. Four
+//                    distinct failure modes.
+//           v2.4____Single HasError check. BHDivisionNames
+//                    and EventsAndDates inside success branch.
+//           v2.3____ParsedJSON assigned once. BHDivisionNames
+//                    as two-column transparency table.
+//           v2.2____Stages 2-3 collapsed. Record.FieldValues
+//                    replaces hardcoded division key.
+//                    Config block updated.
+//           v2.1____Three-stage error handling. Calendar
+//                    always loads.
 // ============================================================
 // 1. CONFIGURATION
 // ============================================================

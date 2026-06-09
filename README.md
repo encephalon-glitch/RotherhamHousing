@@ -52,7 +52,7 @@ fictional scenario.
 - SQL Server stored procedure development with production-grade patterns
 - Synthetic data generation in Python using Faker, Pandas and SQLAlchemy
 - RAG status reporting with parameterised KPI thresholds
-- Audit-ready output design -- self-documenting, timestamped result sets
+- Audit-ready design & output: self-documenting, timestamped result sets
 - Awaab's Law compliance framing within a BI reporting context
 - "Built to outlast us" design philosophy -- no hardcoded assumptions,
   parameterised targets, dynamic date logic
@@ -65,69 +65,9 @@ fictional scenario.
 |---|---|
 | Database | SQL Server 2022 (LocalDB) |
 | Query & Proc Development | SSMS |
-| Data Generation | Python 3.13 -- Faker, Pandas, SQLAlchemy, pyodbc |
-| Visualisation | Python -- Plotly |
+| Data Generation | PowerBI, Python 3.13 - Faker, Pandas, SQLAlchemy, pyodbc |
+| Visualisation | Python - Plotly |
 | Version Control | GitHub |
-
----
-
-## Stored Procedure: GetContractorPerformance
-
-Full specification in `Docs/spec_GetContractorPerformance.md`
-
-Full schema reference in `Docs/schema.md`
-
-### Reporting Modes
-
-> Reporting modes were evaluated and descoped in v1.4. The existing 
-> `@DateFrom` and `@DateTo` parameters provide equivalent flexibility 
-> without additional complexity. May be revisited in future iterations 
-> if a BI tool integration requires named mode parameters.
-
-Defaults to last complete fiscal year to align with the synthetic dataset.
-In production against a live dataset, the intended default is last complete
-calendar month.
-
-| Mode | Parameter Value | Date Range | Primary Use |
-|---|---|---|---|
-| Last Fiscal Year | `LAST_FISCAL_YEAR` | 1 Apr (n-1) to 31 Mar (n) | Annual review, budget projections |
-| Last Quarter | `LAST_QUARTER` | Previous complete quarter | Contract management meetings |
-| Last Two Quarters | `LAST_TWO_QUARTERS` | Previous two complete quarters | Trend comparison |
-| Fiscal Year to Date | `FYTD` | 1 Apr (current) to today | Live operational view |
-
-### Example Calls
-
-```sql
--- Default: last full fiscal year, all contractors
-EXEC dbo.GetContractorPerformance;
-
--- Mears only, last fiscal year
-EXEC dbo.GetContractorPerformance
-    @ContractorName = 'Mears';
-
--- Custom date range override
-EXEC dbo.GetContractorPerformance
-    @DateFrom = '2025-10-01',
-    @DateTo   = '2025-12-31';
-
--- Tightened KPI targets
-EXEC dbo.GetContractorPerformance
-    , @TargetEmergencyGreen    = 99.0
-    , @TargetNonEmergencyGreen = 96.0
-    , @TargetRFTGreen          = 95.0;
-```
-
----
-
-## Versioning
-
-| Version | Status | Notes |
-|---|---|---|
-| v1.0 | Complete | Prototype -- single SELECT, hardcoded RAG thresholds |
-| v1.1 | Complete | Temp table staging, parameterised targets |
-| v1.2 | Complete | CREATE OR ALTER, input validation, error handling |
-| v1.3 | Complete | IIF consolidation, dynamic dates, timestamp |
-| v1.4 | Complete | Reporting period updated, descoped reporting modes, inline comments added |
 
 ---
 
@@ -137,12 +77,14 @@ EXEC dbo.GetContractorPerformance
 |---|---|
 | Database schema and reference data | Complete |
 | Synthetic data generation | Complete |
-| Views | Complete |
-| GetContractorPerformance v1.3 | Complete |
-| GetContractorPerformance v1.4 | Complete |
-| GetRepairsByCategory procedure | in development |
+| sp_GetContractorPerformance | Complete |
+| sp_GetRepairsByCategory | Complete |
+| vw_RepairJobs_Detail | Complete |
+| vw_KPI_Summary | Complete |
+| vw_PropertyStats | Complete |
+| Dynamic reporting calendar | Complete |
 | Plotly visualisation layer | Planned |
-| GitHub publication | Complete |
+| GitHub publication | ongoing |
 
 ---
 
@@ -154,3 +96,5 @@ Martin Sefelin
 
 *Developed with AI assistance (Claude, Anthropic) as part of an active 
 public sector BI portfolio -- May 2026*
+
+---
