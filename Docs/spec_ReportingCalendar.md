@@ -1,5 +1,21 @@
 # Spec: Reporting Calendar
-`PowerBI/ReportingCalendarPBI_Mcode.pq` -- v2.7
+See `PowerBI/ReportingCalendarPBI_Mcode.pq`
+
+---
+
+| Version | Summary |
+|---|---|
+| v3.1 | Fetch block refactored into two explicit defensive classes. Class 1 catches all connection/URL/permission failures via `try` + `Binary.Buffer`. Class 2 catches all document/schema failures via `try Json.Document` and division navigation. `ManualStatusHandling` removed -- unreliable outside custom connector context. Confirmed working across all tested failure scenarios. |
+| v3.0 | `Binary.Buffer` wraps `Web.Contents` inside `try`, forcing eager evaluation. DNS/network failures now caught at `RawFetch[HasError]`. Error message surfaced via `try RawFetch[Error][Message] otherwise` fallback. Two-layer fetch architecture confirmed by testing. |
+| v2.9 | `Response.Status?` operator trialled. Reverted -- DNS failures throw before `Value.Metadata` evaluates due to M-code lazy evaluation. |
+| v2.8 | `ManualStatusHandling` added to `Web.Contents`. HTTP 404/500/503 intercepted and surfaced with status code in message. |
+| v2.7 | `Table.TransformColumnTypes` applied at materialise step. All 22 output columns explicitly typed. Schema locked at refresh. |
+| v2.6 | `FiscalYearStartMonth` added to config. All fiscal derivations parameterised. `fiscalStart` passed explicitly into `fnDate` -- zero closures. |
+| v2.5 | `BHSearchTerm` replaces positional index. Adaptive division discovery via `List.Select`. Ambiguity guard added. Five distinct failure modes. |
+| v2.4 | `RawFetch[HasError]` checked exactly once. `BHDivisionNames` and `EventsAndDates` moved inside success branch. |
+| v2.3 | `ParsedJSON` assigned once. `BHDivisionNames` added as two-column transparency table for step inspector. |
+| v2.2 | Hardcoded division key removed. `Record.FieldValues` navigates JSON dynamically. Config block introduced. |
+| v2.1 | Three-stage error handling introduced. Calendar always loads regardless of fetch outcome. |
 
 ---
 
@@ -12,12 +28,10 @@ compliance calculations including Awaab's Law thresholds.
 ---
 
 ## Architecture
-
 The query is structured in five sections:
-
 1. **Configuration** -- all tuneable values in one place, no magic values in logic
 2. **Date range** -- derived from config, generates `DateList`
-3. **Bank holiday fetch** -- defensive, adaptive, four failure modes
+3. **Bank holiday fetch** -- two defensive classes, five failure modes. See `PowerBI/ReportingCalendarPBI_Mcode.pq` -- Section 3.
 4. **Row function `fnDate`** -- all parameters passed explicitly, no closures
 5. **Materialise** -- typed output, schema locked at refresh
 
@@ -59,24 +73,17 @@ needing to inspect the raw response.
 
 ### Failure Modes
 
-All four failure paths return `BHSet = {}` and a plain-English `BankHolidayStatus`
+All five failure paths return `BHSet = {}` and a plain-English `BankHolidayStatus`
 message. The calendar always loads. `IsWorkingDay` degrades to weekday-only.
 Nothing fails silently.
 
-| Stage | Trigger | Message directs maintainer to |
+| Class | Trigger | Message directs maintainer to |
 |---|---|---|
-| 1 | GOV.UK unreachable | Check gateway and privacy settings |
-| 2a | No division matches `BHSearchTerm` | Lists actual divisions returned, update `BHSearchTerm` |
-| 2b | Multiple divisions match `BHSearchTerm` | Lists ambiguous matches, tighten `BHSearchTerm` |
-| 2c | Division found, events structure broken | M-code revision required |
-
-### Redundancy Design
-
-- `Web.Contents(GovUK)` called once via `RawFetch`
-- `Json.Document(RawFetch[Value])` called once via `ParsedJSON`
-- `Record.FieldNames(ParsedJSON)` called once via `FieldNames`
-- `RawFetch[HasError]` checked exactly once
-- All downstream steps reference named variables, no repeated evaluation
+| Class 1 | Connection, URL, SSL or permission failure | Surfaces GOV.UK's own error string including HTTP code where available |
+| Class 2a | GOV.UK response cannot be parsed as JSON | Check GovUK URL in config block |
+| Class 2b | No division matches `BHSearchTerm` | Lists actual divisions returned, update `BHSearchTerm` |
+| Class 2c | Multiple divisions match `BHSearchTerm` | Lists ambiguous matches, tighten `BHSearchTerm` |
+| Class 2d | Division found, events structure broken | M-code revision required |
 
 ---
 
