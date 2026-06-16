@@ -15,7 +15,7 @@ All data produced is intentionally synthetic. See `DISCLAIMER.md`.
 
 | Version | Changes |
 |---------|---------|
-| v1.3 | Date range extended to two financial years (2024/25 and 2025/26). Job count scaled to 2,000. GOV.UK bank holiday fetch added -- IsWorkingDay correctly populated including bank holidays. Date-aware status logic -- In Progress restricted to jobs raised within IN_PROGRESS_WINDOW_DAYS of dataset end. Property type weighting revised against Rotherham MBC stock profile and English Housing Survey 2024. Bedroom and EPC distributions made property-type-aware. |
+| v1.3 | Date range extended to two financial years (2024/25 and 2025/26). Job count scaled to 2,000. GOV.UK bank holiday fetch added -- IsWorkingDay correctly populated including bank holidays. Date-aware status logic -- In Progress restricted to jobs raised within IN_PROGRESS_WINDOW_DAYS of dataset end. Property type weighting revised against Rotherham MBC stock profile and English Housing Survey 2024. Bedroom and EPC distributions made property-type-aware. Ward name string replaced with WardID integer FK -- cleaner relational design, avoids fragile string matching downstream. |
 | v1.2 | Ward list replaced with 25 real Rotherham MBC ward names. Connection string SERVER replaced with placeholder for portability. |
 | v1.1 | Urgent priority band added. No Access status added. Awaab's Law three-tier RAG alignment. |
 | v1.0 | Initial generator. Calendar, Properties, RepairJobs. Single financial year. |
@@ -128,7 +128,7 @@ Fiscal year boundary handled by month comparison -- no hardcoded year values.
 500 synthetic properties seeded with:
 
 - Sequential reference: `PROP0001` to `PROP0500`
-- wardID: randomly selected from 1 to 25 (v1.2)
+- WardID: integer FK (1-25) referencing WardGeometry dimension, ward name string removed in v1.3.
 - Property type: House (55%), Flat (35%), Bungalow (10%)
 - Bedrooms: property-type-aware distribution (v1.3)
 - EPC rating: property-type-aware distribution (v1.3)
