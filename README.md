@@ -82,8 +82,10 @@ fictional scenario.
 | vw_RepairJobs_Detail | Complete |
 | vw_KPI_Summary | Complete |
 | vw_PropertyStats | Complete |
+| vw_RepeatRepairs | Complete |
+| fn_WorkingDaysBetween | Complete |
 | Dynamic reporting calendar | Complete |
-| Plotly visualisation layer | Planned |
+| Plotly visualisation layer | Descoped |
 | GitHub publication | ongoing |
 
 ---
